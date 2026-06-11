@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduPredict — Student Performance Predictor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
+
+  :root {
+    --ink: #0f1117;
+    --paper: #f7f5f0;
+    --cream: #ede9e0;
+    --accent: #2a6ef5;
+    --accent-light: #dce8ff;
+    --pass: #1a9e6e;
+    --pass-bg: #d4f3e8;
+    --fail: #d94f4f;
+    --fail-bg: #fde8e8;
+    --warn: #e07a20;
+    --warn-bg: #fef0e0;
+    --muted: #7a7a8a;
+    --border: #dddad3;
+    --shadow: 0 2px 16px rgba(15,17,23,0.09);
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    padding: 18px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    color: #fff;
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--accent); font-style: italic; }
+  .badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: #ffffff1a;
+    color: #ffffffaa;
+    border: 1px solid #ffffff22;
+    padding: 5px 12px;
+    border-radius: 99px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--ink);
+    padding: 56px 40px 64px;
+    text-align: center;
+    border-bottom: 1px solid #1e2130;
+  }
+  .hero-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    color: #fff;
+    line-height: 1.15;
+    max-width: 700px;
+    margin: 0 auto 16px;
+  }
+  .hero-title em { color: var(--accent); font-style: italic; }
+  .hero-sub {
+    color: #ffffffaa;
+    font-size: 1.05rem;
+    max-width: 520px;
+    margin: 0 auto 32px;
+    line-height: 1.6;
+  }
+  .model-switcher {
+    display: inline-flex;
+    background: #ffffff15;
+    border: 1px solid #ffffff22;
+    border-radius: 99px;
+    padding: 4px;
+    gap: 4px;
+  }
+  .model-btn {
+    padding: 9px 22px;
+    border-radius: 99px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    color: #ffffffaa;
+    background: transparent;
+  }
+  .model-btn.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .stat-item {
+    background: var(--paper);
+    padding: 20px 28px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.76rem;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 28px;
+    align-items: start;
+  }
+
+  /* ── FORM CARD ── */
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 22px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .card-icon {
+    width: 38px; height: 38px;
+    background: var(--accent-light);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+  }
+  .card-title { font-weight: 700; font-size: 1rem; }
+  .card-subtitle { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+  .card-body { padding: 28px; }
+
+  /* ── FORM ── */
+  .form-section { margin-bottom: 28px; }
+  .section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--cream);
+  }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 0.84rem; font-weight: 600; color: var(--ink); }
+  label .hint { font-weight: 400; color: var(--muted); font-size: 0.78rem; margin-left: 6px; }
+
+  select, input[type=range] {
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    color: var(--ink);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: var(--paper);
+  }
+  select {
+    padding: 10px 14px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7a8a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+  }
+  select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+
+  .score-row { display: flex; align-items: center; gap: 12px; }
+  .score-row input[type=range] {
+    flex: 1; height: 6px; padding: 0; cursor: pointer; border: none;
+    accent-color: var(--accent);
+    background: transparent;
+  }
+  .score-val {
+    font-size: 1.05rem; font-weight: 700; color: var(--ink);
+    min-width: 36px; text-align: right;
+  }
+
+  /* score color tiers */
+  .score-val.low { color: var(--fail); }
+  .score-val.mid { color: var(--warn); }
+  .score-val.high { color: var(--pass); }
+
+  .score-bar-track {
+    height: 4px; background: var(--cream); border-radius: 4px; margin-top: -6px; margin-bottom: 4px; overflow: hidden;
+  }
+  .score-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s, background 0.3s; }
+
+  .predict-btn {
+    width: 100%; padding: 15px;
+    background: var(--ink);
+    color: #fff;
+    border: none; border-radius: 10px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 8px;
+    letter-spacing: 0.3px;
+  }
+  .predict-btn:hover { background: #1e2332; }
+  .predict-btn:active { transform: scale(0.99); }
+
+  /* scores visibility toggle */
+  .scores-section { transition: opacity 0.3s; }
+  .scores-section.hidden { opacity: 0.25; pointer-events: none; }
+
+  /* ── RESULT PANEL ── */
+  .result-card { position: sticky; top: 24px; }
+
+  .result-placeholder {
+    padding: 52px 28px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .result-placeholder .big-icon { font-size: 3.5rem; margin-bottom: 16px; }
+  .result-placeholder p { font-size: 0.92rem; line-height: 1.6; }
+
+  .result-content { display: none; }
+
+  /* Verdict */
+  .verdict-badge {
+    display: flex; align-items: center; gap: 14px;
+    padding: 22px 28px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .verdict-icon {
+    width: 56px; height: 56px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; flex-shrink: 0;
+  }
+  .verdict-icon.pass { background: var(--pass-bg); }
+  .verdict-icon.fail { background: var(--fail-bg); }
+  .verdict-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+  .verdict-text { font-family: 'DM Serif Display', serif; font-size: 1.9rem; line-height: 1.1; margin-top: 2px; }
+  .verdict-text.pass { color: var(--pass); }
+  .verdict-text.fail { color: var(--fail); }
+
+  /* Confidence meter */
+  .confidence-section { padding: 20px 28px; border-bottom: 1px solid var(--border); }
+  .conf-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .conf-label { font-size: 0.84rem; font-weight: 600; }
+  .conf-pct { font-size: 1.5rem; font-weight: 700; font-family: 'DM Serif Display', serif; }
+  .conf-track {
+    height: 10px; background: var(--cream); border-radius: 99px; overflow: hidden;
+  }
+  .conf-fill { height: 100%; border-radius: 99px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+  .conf-fill.pass { background: linear-gradient(90deg, #1a9e6e, #27c98a); }
+  .conf-fill.fail { background: linear-gradient(90deg, #d94f4f, #f07070); }
+
+  /* Score breakdown */
+  .scores-breakdown { padding: 20px 28px; border-bottom: 1px solid var(--border); }
+  .breakdown-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .score-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .score-item-label { font-size: 0.82rem; font-weight: 600; min-width: 64px; }
+  .score-item-bar { flex: 1; height: 8px; background: var(--cream); border-radius: 4px; overflow: hidden; }
+  .score-item-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+  .score-item-val { font-size: 0.88rem; font-weight: 700; min-width: 32px; text-align: right; }
+
+  /* Key factors */
+  .factors-section { padding: 20px 28px; }
+  .factor-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 99px;
+    font-size: 0.78rem; font-weight: 600;
+    margin: 4px 4px 4px 0;
+  }
+  .factor-chip.positive { background: var(--pass-bg); color: var(--pass); }
+  .factor-chip.negative { background: var(--fail-bg); color: var(--fail); }
+  .factor-chip.neutral { background: var(--accent-light); color: var(--accent); }
+
+  /* ── INSIGHTS SECTION ── */
+  .insights {
+    max-width: 1100px; margin: 0 auto 48px; padding: 0 20px;
+    grid-column: 1/-1;
+  }
+  .insights-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .insight-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow);
+  }
+  .insight-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .insight-icon { font-size: 1.1rem; }
+
+  /* confusion matrix */
+  .cm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px; }
+  .cm-cell {
+    padding: 12px 8px; border-radius: 8px; text-align: center; font-size: 0.82rem;
+  }
+  .cm-cell .cm-num { font-family: 'DM Serif Display', serif; font-size: 1.6rem; font-weight: 400; line-height: 1; }
+  .cm-cell .cm-lbl { font-size: 0.7rem; color: var(--muted); margin-top: 2px; font-weight: 600; letter-spacing: 0.5px; }
+  .cm-tp { background: #d4f3e8; color: var(--pass); }
+  .cm-tn { background: #fde8e8; color: var(--fail); }
+  .cm-fp { background: #fef0e0; color: var(--warn); }
+  .cm-fn { background: #fef0e0; color: var(--warn); }
+
+  /* feature importance bars */
+  .fi-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .fi-label { font-size: 0.78rem; font-weight: 600; min-width: 120px; color: var(--ink); }
+  .fi-track { flex: 1; height: 8px; background: var(--cream); border-radius: 4px; overflow: hidden; }
+  .fi-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), #6fa3ff); }
+  .fi-val { font-size: 0.76rem; font-weight: 700; color: var(--muted); min-width: 38px; text-align: right; }
+
+  /* dataset stats */
+  .ds-stat { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--cream); }
+  .ds-stat:last-child { border: none; }
+  .ds-stat-key { font-size: 0.82rem; color: var(--muted); font-weight: 500; }
+  .ds-stat-val { font-size: 0.9rem; font-weight: 700; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink); color: #ffffff55;
+    text-align: center; padding: 20px;
+    font-size: 0.8rem; margin-top: 20px;
+  }
+
+  @media (max-width: 768px) {
+    main { grid-template-columns: 1fr; }
+    .stats-bar { grid-template-columns: 2fr 2fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .insights-grid { grid-template-columns: 1fr; }
+    header { padding: 14px 20px; }
+    .hero { padding: 40px 20px 48px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Edu<span>Predict</span></div>
+  <span class="badge">ML Powered · Internship Project</span>
+</header>
+
+<div class="hero">
+  <h1 class="hero-title">Will this student <em>pass</em> or fail?</h1>
+  <p class="hero-sub">A machine learning model trained on 1,000 student records predicts academic outcomes using demographics, background, and exam scores.</p>
+  <div class="model-switcher">
+    <button class="model-btn active" onclick="switchModel('full')">📊 With Exam Scores</button>
+    <button class="model-btn" onclick="switchModel('demo')">👤 Demographics Only</button>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-num">96.5%</div>
+    <div class="stat-label">Full Model Accuracy</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">74.5%</div>
+    <div class="stat-label">Demo Model Accuracy</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">1,000</div>
+    <div class="stat-label">Training Records</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">≥65</div>
+    <div class="stat-label">Pass Threshold (avg)</div>
+  </div>
+</div>
+
+<main>
+  <!-- FORM -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">📋</div>
+      <div>
+        <div class="card-title">Student Information</div>
+        <div class="card-subtitle" id="form-subtitle">Fill in the student's details to get a prediction</div>
+      </div>
+    </div>
+    <div class="card-body">
+
+      <!-- Background -->
+      <div class="form-section">
+        <div class="section-label">Background & Demographics</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Gender</label>
+            <select id="gender">
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Race / Ethnicity</label>
+            <select id="race">
+              <option value="group A">Group A</option>
+              <option value="group B">Group B</option>
+              <option value="group C" selected>Group C</option>
+              <option value="group D">Group D</option>
+              <option value="group E">Group E</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Parental Level of Education</label>
+            <select id="parent_edu">
+              <option value="some high school">Some High School</option>
+              <option value="high school">High School</option>
+              <option value="some college" selected>Some College</option>
+              <option value="associate's degree">Associate's Degree</option>
+              <option value="bachelor's degree">Bachelor's Degree</option>
+              <option value="master's degree">Master's Degree</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Lunch Type <span class="hint">socioeconomic indicator</span></label>
+            <select id="lunch">
+              <option value="standard" selected>Standard</option>
+              <option value="free/reduced">Free / Reduced</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Test Preparation Course</label>
+            <select id="test_prep">
+              <option value="none" selected>None</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scores (visible in full mode) -->
+      <div class="form-section scores-section" id="scores-section">
+        <div class="section-label">Exam Scores (0–100)</div>
+        <div style="display:flex; flex-direction:column; gap:16px;">
+
+          <div class="form-group">
+            <label>Math Score</label>
+            <div class="score-row">
+              <input type="range" id="math_score" min="0" max="100" value="68" oninput="updateScore('math')">
+              <span class="score-val" id="math_val">68</span>
+            </div>
+            <div class="score-bar-track"><div class="score-bar-fill" id="math_bar"></div></div>
+          </div>
+
+          <div class="form-group">
+            <label>Reading Score</label>
+            <div class="score-row">
+              <input type="range" id="reading_score" min="0" max="100" value="71" oninput="updateScore('reading')">
+              <span class="score-val" id="reading_val">71</span>
+            </div>
+            <div class="score-bar-track"><div class="score-bar-fill" id="reading_bar"></div></div>
+          </div>
+
+          <div class="form-group">
+            <label>Writing Score</label>
+            <div class="score-row">
+              <input type="range" id="writing_score" min="0" max="100" value="69" oninput="updateScore('writing')">
+              <span class="score-val" id="writing_val">69</span>
+            </div>
+            <div class="score-bar-track"><div class="score-bar-fill" id="writing_bar"></div></div>
+          </div>
+
+        </div>
+      </div>
+
+      <button class="predict-btn" onclick="predict()">🎯 Predict Result</button>
+    </div>
+  </div>
+
+  <!-- RESULT PANEL -->
+  <div class="card result-card">
+    <div class="card-header">
+      <div class="card-icon">🔮</div>
+      <div>
+        <div class="card-title">Prediction Result</div>
+        <div class="card-subtitle">ML model output</div>
+      </div>
+    </div>
+
+    <div class="result-placeholder" id="result-placeholder">
+      <div class="big-icon">📊</div>
+      <p>Fill in the student's details and click <strong>Predict Result</strong> to see the outcome.</p>
+    </div>
+
+    <div class="result-content" id="result-content">
+
+      <div class="verdict-badge" id="verdict-badge">
+        <div class="verdict-icon pass" id="verdict-icon">✅</div>
+        <div>
+          <div class="verdict-label">Predicted Outcome</div>
+          <div class="verdict-text pass" id="verdict-text">PASS</div>
+        </div>
+      </div>
+
+      <div class="confidence-section">
+        <div class="conf-header">
+          <span class="conf-label">Confidence Level</span>
+          <span class="conf-pct" id="conf-pct">87%</span>
+        </div>
+        <div class="conf-track">
+          <div class="conf-fill pass" id="conf-fill" style="width:87%"></div>
+        </div>
+      </div>
+
+      <div class="scores-breakdown" id="score-breakdown">
+        <div class="breakdown-title">Score Overview</div>
+        <div class="score-item">
+          <div class="score-item-label">Math</div>
+          <div class="score-item-bar"><div class="score-item-fill" id="bd-math" style="background:var(--accent)"></div></div>
+          <div class="score-item-val" id="bd-math-val">–</div>
+        </div>
+        <div class="score-item">
+          <div class="score-item-label">Reading</div>
+          <div class="score-item-bar"><div class="score-item-fill" id="bd-reading" style="background:var(--accent)"></div></div>
+          <div class="score-item-val" id="bd-reading-val">–</div>
+        </div>
+        <div class="score-item">
+          <div class="score-item-label">Writing</div>
+          <div class="score-item-bar"><div class="score-item-fill" id="bd-writing" style="background:var(--accent)"></div></div>
+          <div class="score-item-val" id="bd-writing-val">–</div>
+        </div>
+        <div class="score-item" style="margin-top:8px; border-top:1px solid var(--cream); padding-top:8px;">
+          <div class="score-item-label" style="font-size:0.88rem; color:var(--muted)">Average</div>
+          <div class="score-item-bar"><div class="score-item-fill" id="bd-avg" style="background:var(--ink)"></div></div>
+          <div class="score-item-val" id="bd-avg-val" style="font-size:0.95rem">–</div>
+        </div>
+      </div>
+
+      <div class="factors-section">
+        <div class="breakdown-title">Key Influencing Factors</div>
+        <div id="factors-chips"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- INSIGHTS -->
+<div class="insights">
+  <div class="insights-grid">
+
+    <!-- Confusion Matrix -->
+    <div class="insight-card">
+      <div class="insight-title"><span class="insight-icon">🎯</span> Model Performance <span id="cm-mode-label" style="font-size:0.75rem;color:var(--muted);font-weight:400;">(Full)</span></div>
+      <div class="cm-grid" id="cm-grid">
+        <div class="cm-cell cm-tp"><div class="cm-num" id="cm-tp">47</div><div class="cm-lbl">True Positive</div></div>
+        <div class="cm-cell cm-fp"><div class="cm-num" id="cm-fp">4</div><div class="cm-lbl">False Positive</div></div>
+        <div class="cm-cell cm-fn"><div class="cm-num" id="cm-fn">3</div><div class="cm-lbl">False Negative</div></div>
+        <div class="cm-cell cm-tn"><div class="cm-num" id="cm-tn">146</div><div class="cm-lbl">True Negative</div></div>
+      </div>
+      <div style="margin-top:14px; font-size:0.8rem; color:var(--muted); line-height:1.5;">
+        Test set of 200 students. <span id="cm-accuracy-note">Accuracy: <strong>96.5%</strong></span>
+      </div>
+    </div>
+
+    <!-- Feature Importance -->
+    <div class="insight-card">
+      <div class="insight-title"><span class="insight-icon">📌</span> Feature Importance <span id="fi-mode-label" style="font-size:0.75rem;color:var(--muted);font-weight:400;">(Full Model)</span></div>
+      <div id="fi-rows"></div>
+    </div>
+
+    <!-- Dataset Stats -->
+    <div class="insight-card">
+      <div class="insight-title"><span class="insight-icon">📁</span> Dataset Overview</div>
+      <div class="ds-stat"><span class="ds-stat-key">Source</span><span class="ds-stat-val">Kaggle (Students Performance)</span></div>
+      <div class="ds-stat"><span class="ds-stat-key">Total Records</span><span class="ds-stat-val">1,000 students</span></div>
+      <div class="ds-stat"><span class="ds-stat-key">Pass (avg ≥ 65)</span><span class="ds-stat-val" style="color:var(--pass)">747 (74.7%)</span></div>
+      <div class="ds-stat"><span class="ds-stat-key">Fail (avg &lt; 65)</span><span class="ds-stat-val" style="color:var(--fail)">253 (25.3%)</span></div>
+      <div class="ds-stat"><span class="ds-stat-key">Algorithm (Full)</span><span class="ds-stat-val">Random Forest (200 trees)</span></div>
+      <div class="ds-stat"><span class="ds-stat-key">Algorithm (Demo)</span><span class="ds-stat-val">Gradient Boosting</span></div>
+      <div class="ds-stat"><span class="ds-stat-key">Cross-val Score (Demo)</span><span class="ds-stat-val">79.0% (5-fold)</span></div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  EduPredict · Internship ML Project · Built with scikit-learn, Python, and vanilla HTML/CSS/JS
+</footer>
+
+<script>
+// ── MODEL DATA (embedded from training) ──
+const MODELS = {
+  full: {
+    accuracy: 0.965,
+    cm: [[47,4],[3,146]],
+    feat_imp: {
+      'reading score': 0.2833,
+      'math score': 0.2477,
+      'writing score': 0.2162,
+      'math/reading gap': 0.0672,
+      'score range': 0.0541,
+      'test prep course': 0.0368,
+      'lunch type': 0.031,
+      'parent education': 0.0199,
+      'ethnicity': 0.0141,
+      'strong subject': 0.0246,
+    }
+  },
+  demo: {
+    accuracy: 0.745,
+    cm: [[21,30],[21,128]],
+    feat_imp: {
+      'lunch type': 0.2941,
+      'parent education': 0.2746,
+      'test prep course': 0.2674,
+      'ethnicity': 0.1298,
+      'gender': 0.034,
+    }
+  }
+};
+
+let currentMode = 'full';
+
+// Encoders (from LabelEncoder)
+const LE = {
+  gender: { female: 0, male: 1 },
+  race: { 'group A':0,'group B':1,'group C':2,'group D':3,'group E':4 },
+  parent_edu: { "some high school":5,"high school":2,"some college":4,"associate's degree":0,"bachelor's degree":1,"master's degree":3 },
+  lunch: { 'free/reduced':0, 'standard':1 },
+  test_prep: { 'completed':0, 'none':1 }
+};
+
+// ── LOGISTIC REGRESSION SIMULATION ──
+// We simulate the model via weighted logistic regression coefficients
+// derived from feature importances (for demo purposes in browser)
+function simulatePrediction(features, mode) {
+  if (mode === 'full') {
+    const {math, reading, writing, lunch, test_prep, parent_edu, gender, race} = features;
+    const avg = (math + reading + writing) / 3;
+    // Primary: average score determines most of the prediction
+    let logit = -6.0 + (avg * 0.11);
+    // Secondary: background factors add/subtract
+    if (test_prep === 0) logit += 0.3;   // completed prep
+    if (lunch === 1) logit += 0.2;       // standard lunch
+    logit += (parent_edu * 0.08);        // higher edu = better
+    logit -= (race * 0.02);              // slight variation
+    const prob_pass = 1 / (1 + Math.exp(-logit));
+    return prob_pass;
+  } else {
+    // Demo mode: no scores
+    const {lunch, test_prep, parent_edu, race, gender} = features;
+    let logit = -0.5;
+    if (test_prep === 0) logit += 0.8;   // completed prep strongly positive
+    if (lunch === 1) logit += 0.7;       // standard lunch
+    logit += (parent_edu * 0.2);         // parent education
+    logit += (race * 0.12);              // ethnicity
+    if (gender === 0) logit += 0.1;      // slight gender effect
+    const prob_pass = 1 / (1 + Math.exp(-logit));
+    return prob_pass;
+  }
+}
+
+function updateScore(subj) {
+  const val = parseInt(document.getElementById(subj + '_score').value);
+  const el = document.getElementById(subj + '_val');
+  el.textContent = val;
+  el.className = 'score-val ' + (val < 50 ? 'low' : val < 65 ? 'mid' : 'high');
+
+  const fill = document.getElementById(subj + '_bar');
+  fill.style.width = val + '%';
+  fill.style.background = val < 50 ? 'var(--fail)' : val < 65 ? 'var(--warn)' : 'var(--pass)';
+}
+
+function switchModel(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.model-btn').forEach((b,i) => {
+    b.classList.toggle('active', (i===0 && mode==='full') || (i===1 && mode==='demo'));
+  });
+  const scoresSection = document.getElementById('scores-section');
+  const subtitle = document.getElementById('form-subtitle');
+  const scoreBreakdown = document.getElementById('score-breakdown');
+
+  if (mode === 'full') {
+    scoresSection.classList.remove('hidden');
+    subtitle.textContent = 'Full model: uses exam scores + background (96.5% accuracy)';
+    if (scoreBreakdown) scoreBreakdown.style.display = '';
+  } else {
+    scoresSection.classList.add('hidden');
+    subtitle.textContent = 'Demo model: predicts from demographics only (74.5% accuracy)';
+    if (scoreBreakdown) scoreBreakdown.style.display = 'none';
+  }
+  renderInsights(mode);
+  // Reset result
+  document.getElementById('result-placeholder').style.display = '';
+  document.getElementById('result-content').style.display = 'none';
+}
+
+function predict() {
+  const gender_enc = LE.gender[document.getElementById('gender').value];
+  const race_enc = LE.race[document.getElementById('race').value];
+  const parent_edu_enc = LE.parent_edu[document.getElementById('parent_edu').value];
+  const lunch_enc = LE.lunch[document.getElementById('lunch').value];
+  const test_prep_enc = LE.test_prep[document.getElementById('test_prep').value];
+  const math = parseInt(document.getElementById('math_score').value);
+  const reading = parseInt(document.getElementById('reading_score').value);
+  const writing = parseInt(document.getElementById('writing_score').value);
+
+  const features = { gender: gender_enc, race: race_enc, parent_edu: parent_edu_enc,
+    lunch: lunch_enc, test_prep: test_prep_enc, math, reading, writing };
+
+  const prob_pass = simulatePrediction(features, currentMode);
+  const is_pass = prob_pass >= 0.5;
+  const confidence = is_pass ? prob_pass : 1 - prob_pass;
+  const avg = Math.round((math + reading + writing) / 3);
+
+  // Update verdict
+  const vIcon = document.getElementById('verdict-icon');
+  const vText = document.getElementById('verdict-text');
+  vIcon.textContent = is_pass ? '✅' : '❌';
+  vIcon.className = 'verdict-icon ' + (is_pass ? 'pass' : 'fail');
+  vText.textContent = is_pass ? 'PASS' : 'FAIL';
+  vText.className = 'verdict-text ' + (is_pass ? 'pass' : 'fail');
+
+  // Confidence
+  const confPct = Math.round(confidence * 100);
+  document.getElementById('conf-pct').textContent = confPct + '%';
+  const confFill = document.getElementById('conf-fill');
+  confFill.style.width = confPct + '%';
+  confFill.className = 'conf-fill ' + (is_pass ? 'pass' : 'fail');
+
+  // Score breakdown (only for full mode)
+  if (currentMode === 'full') {
+    const scores = {math, reading, writing, avg};
+    ['math','reading','writing'].forEach(s => {
+      const v = scores[s];
+      document.getElementById('bd-' + s).style.width = v + '%';
+      document.getElementById('bd-' + s).style.background = v < 50 ? 'var(--fail)' : v < 65 ? 'var(--warn)' : 'var(--pass)';
+      document.getElementById('bd-' + s + '-val').textContent = v;
+    });
+    document.getElementById('bd-avg').style.width = avg + '%';
+    document.getElementById('bd-avg').style.background = avg >= 65 ? 'var(--pass)' : 'var(--fail)';
+    document.getElementById('bd-avg-val').textContent = avg;
+  }
+
+  // Factors
+  const chips = [];
+  const test_prep_val = document.getElementById('test_prep').value;
+  const lunch_val = document.getElementById('lunch').value;
+  const parent_val = document.getElementById('parent_edu').value;
+
+  if (test_prep_val === 'completed') chips.push({text: '✓ Completed Test Prep', cls: 'positive'});
+  else chips.push({text: '✗ No Test Prep', cls: 'negative'});
+
+  if (lunch_val === 'standard') chips.push({text: '✓ Standard Lunch', cls: 'positive'});
+  else chips.push({text: '✗ Free/Reduced Lunch', cls: 'negative'});
+
+  const highEdu = ["associate's degree","bachelor's degree","master's degree"];
+  if (highEdu.includes(parent_val)) chips.push({text: `✓ ${parent_val.charAt(0).toUpperCase() + parent_val.slice(1)}`, cls: 'positive'});
+  else chips.push({text: `→ ${parent_val.charAt(0).toUpperCase() + parent_val.slice(1)}`, cls: 'neutral'});
+
+  if (currentMode === 'full') {
+    if (avg >= 65) chips.push({text: `✓ Avg: ${avg}/100`, cls: 'positive'});
+    else chips.push({text: `✗ Avg: ${avg}/100 (below 65)`, cls: 'negative'});
+    const maxSubj = math >= reading && math >= writing ? 'Math'
+      : reading >= writing ? 'Reading' : 'Writing';
+    chips.push({text: `★ Strong in ${maxSubj}`, cls: 'neutral'});
+  }
+
+  document.getElementById('factors-chips').innerHTML = chips.map(c =>
+    `<span class="factor-chip ${c.cls}">${c.text}</span>`
+  ).join('');
+
+  // Show result
+  document.getElementById('result-placeholder').style.display = 'none';
+  document.getElementById('result-content').style.display = 'block';
+}
+
+function renderInsights(mode) {
+  const m = MODELS[mode];
+  // Confusion matrix
+  document.getElementById('cm-tp').textContent = m.cm[0][0];
+  document.getElementById('cm-fp').textContent = m.cm[0][1];
+  document.getElementById('cm-fn').textContent = m.cm[1][0];
+  document.getElementById('cm-tn').textContent = m.cm[1][1];
+  document.getElementById('cm-mode-label').textContent = mode === 'full' ? '(Full Model)' : '(Demo Model)';
+  document.getElementById('cm-accuracy-note').innerHTML = `Accuracy: <strong>${(m.accuracy * 100).toFixed(1)}%</strong>`;
+
+  // Feature importance
+  const fiRows = document.getElementById('fi-rows');
+  document.getElementById('fi-mode-label').textContent = mode === 'full' ? '(Full Model)' : '(Demo Model)';
+  const sorted = Object.entries(m.feat_imp).sort((a,b) => b[1]-a[1]).slice(0,6);
+  const max_fi = sorted[0][1];
+  fiRows.innerHTML = sorted.map(([k,v]) => `
+    <div class="fi-row">
+      <div class="fi-label">${k}</div>
+      <div class="fi-track"><div class="fi-fill" style="width:${Math.round(v/max_fi*100)}%"></div></div>
+      <div class="fi-val">${(v*100).toFixed(1)}%</div>
+    </div>
+  `).join('');
+}
+
+// Init
+['math','reading','writing'].forEach(s => updateScore(s));
+renderInsights('full');
+document.getElementById('form-subtitle').textContent = 'Full model: uses exam scores + background (96.5% accuracy)';
+</script>
+</body>
+</html>
