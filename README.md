@@ -1,4 +1,4 @@
-*Student Performance Predictor ( EDU-predict )
+*Student Performance Predictor ( Edu-Predict )
 
 
 Live Demo: https://ayushxhyphen.github.io/student-performance-predictor/
